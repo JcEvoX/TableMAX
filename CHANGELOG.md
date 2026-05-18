@@ -9,41 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Import connections from Beekeeper Studio. Reads `app.db` from the local workspace, decrypts saved passwords using Beekeeper's two-tier key scheme, and maps SSH bastion hosts to TablePro's jump-host field
+- Import connections from Beekeeper Studio, including encrypted passwords and SSH bastion hosts
 - Schema picker at the bottom of the Tables sidebar to switch the active schema (#1296)
-- Inline dropdown picker when editing ENUM and SET columns, covering MySQL, MariaDB, PostgreSQL, ClickHouse, DuckDB, and MongoDB JSON-schema enums (#1283)
+- Inline dropdown picker when editing ENUM and SET columns across MySQL, MariaDB, PostgreSQL, ClickHouse, DuckDB, and MongoDB JSON-schema enums (#1283)
 - Filter rows show an enum dropdown for `=` and `!=` operators on enum columns (#1283)
-- CSV/TSV inspector: open files from Finder or File > Open, edit cells, multi-condition filter (Cmd+F), multi-column sort (shift-click headers), add/remove/rename columns with type override, copy/paste rows as TSV, undo/redo, auto-reload on external changes. Large files stream from disk without loading into memory. (#1259)
-- iOS: SQL Server (MSSQL) connections via FreeTDS over TDS 7.4. Uses the shared `SSLConfiguration` model from connection settings. Supports connect, query, streaming results, schema browsing (tables, columns, indexes, foreign keys), database and schema switching, and explicit transactions.
-- iOS: data browser, search, filter, and pagination now render correct SQL Server syntax (bracket-quoted identifiers, `OFFSET ... ROWS FETCH NEXT ... ROWS ONLY` pagination, `SELECT TOP 1` for cell value fetch).
-- iOS: Settings > Sync now shows last sync time, a Sync Now button, and a Refresh from iCloud action that re-downloads every connection, group, and tag when items are missing on this device but visible on another.
+- CSV/TSV inspector: edit cells, filter, sort, add/remove/rename columns, undo/redo, auto-reload on external changes; large files stream from disk (#1259)
+- iOS: SQL Server connections via FreeTDS over TDS 7.4, with schema browsing, data browser, search, filter, pagination, and explicit transactions
+- iOS: Settings > Sync shows last sync time with Sync Now and Refresh from iCloud actions
 
 ### Changed
 
 - Drivers populate allowed enum values directly in column metadata instead of parsing them downstream
 - PluginKit ABI bumped to version 13; all registry plugins need to be re-tagged
-- New PostgreSQL, MySQL, MariaDB, SQL Server, Redshift, and CockroachDB connections default SSL mode to Preferred, matching libpq, libmariadb 2-pass, and FreeTDS native behavior
-- Oracle SSL mode is now honored: Required, Verify CA, and Verify Identity wire through to OracleNIO TCPS (was silently ignored)
-- Cassandra SSL mode is now honored via the standard SSL pane (was silently ignored because the plugin read from a hidden field that was never set)
-- MySQL and MariaDB Preferred SSL mode now performs a real 2-pass connect: tries TLS first, falls back to plaintext only on SSL handshake errors (CR_SSL_CONNECTION_ERROR, CR_SERVER_HANDSHAKE_ERR, ER_HANDSHAKE_ERROR)
-- SSL pane shows per-engine guidance explaining how that driver handles Preferred, when TLS is required by hosted providers, and any driver-specific quirks
-- Failed connections caused by SSL/TLS handshake errors now show a structured message that names the cause (server requires encryption, server rejects encryption, untrusted certificate, hostname mismatch, client cert required, cipher mismatch) and recommends a specific SSL Mode to switch to. Covers PostgreSQL, MySQL/MariaDB, SQL Server, Oracle, MongoDB, Redis, Cassandra, and ClickHouse.
-- SSL pane warns inline when a driver does not support TLS fallback for Preferred mode (MongoDB, Redis, Cassandra, ScyllaDB, ClickHouse, Oracle, etcd), so the user knows Preferred behaves the same as Required for that engine.
-- Welcome screen connection errors (single-click connect, sample database launch) also surface the structured SSL handshake message when applicable
-- All driver SSL mapping logic now lives in dedicated `XxxSSLMapping` files (PostgreSQL, MSSQL, Cassandra, MongoDB, Oracle); ClickHouse and Redis keep their existing encapsulated helpers
+- New PostgreSQL, MySQL, MariaDB, SQL Server, Redshift, and CockroachDB connections default to Preferred SSL mode, matching the native client library defaults
+- MySQL and MariaDB Preferred mode now does a 2-pass connect: tries TLS first, falls back to plaintext only on SSL handshake errors (auth and network errors are not retried)
+- SSL pane shows per-engine guidance and warns inline when the driver has no TLS fallback for Preferred mode
+- Connection failures caused by SSL handshake errors now show a structured message naming the cause and recommending an SSL Mode to switch to, with credentials redacted from the raw driver response
 
 ### Fixed
 
-- Import from other apps now detects TablePlus, Sequel Ace, and DBeaver via LaunchServices instead of probing for data files, so newly installed apps are picked up even before they have been opened (#1305)
-- ClickHouse (and any HTTP-based driver) can now connect to plain-HTTP servers addressed by DNS hostname; previously App Transport Security blocked the request because only IP-addressed plain HTTP is exempt by default (#1316)
-- Import from TablePlus now reads passwords from the keychain correctly; previously it queried the wrong service name and silently returned empty passwords without prompting
-- Port numbers in the import preview, welcome screen linked-file list, and plugin details no longer render with a thousand separator (e.g. 3306 instead of 3.306) under Vietnamese, German, and other locales that use a dot as a digit separator
+- Import from other apps now detects TablePlus, Sequel Ace, and DBeaver via LaunchServices, so newly installed apps are picked up before they have been opened (#1305)
+- ClickHouse and other HTTP-based drivers can now connect to plain-HTTP servers addressed by DNS hostname (#1316)
+- Import from TablePlus now reads passwords from the keychain correctly instead of returning empty
+- Port numbers no longer render with a thousand separator under locales that use a dot as a digit separator
 - New query tab (Cmd+T) no longer jumps focus back to the previous table tab on SQLite and other file-based databases (#1313)
-- File-based databases (SQLite, DuckDB) no longer flash the sidebar table list every time a window becomes key; external file changes are picked up reactively via the file watcher instead of polling on focus
-- PostgreSQL connections to AWS RDS, Cloud SQL, Azure, and other hosted Postgres now succeed out of the box instead of failing with "no pg_hba.conf entry for host" (#1298)
-- Oracle: SSL/TCPS settings from the SSL pane are now respected; previously every Oracle connection was plain TCP regardless of SSL mode
-- Cassandra: SSL settings from the SSL pane are now respected; previously every Cassandra connection was plain TCP because the plugin read from a non-existent "sslMode" field
-- MySQL/MariaDB Cloud SQL, Azure Database, and other hosted MySQL servers that require TLS no longer fail with "Connections using insecure transport are prohibited" when SSL mode is Preferred
+- File-based databases (SQLite, DuckDB) no longer flash the sidebar table list on window focus; external changes are picked up via the file watcher instead
+- PostgreSQL connections to AWS RDS, Cloud SQL, Azure, and other hosted Postgres no longer fail with "no pg_hba.conf entry for host" (#1298)
+- Oracle SSL/TCPS settings from the SSL pane are now respected; previously every Oracle connection was plain TCP
+- Cassandra SSL settings from the SSL pane are now respected; previously every Cassandra connection was plain TCP
+- MySQL and MariaDB Preferred mode no longer fails against Cloud SQL, Azure Database, and other hosted MySQL servers that require TLS
 
 ## [0.42.0] - 2026-05-16
 
