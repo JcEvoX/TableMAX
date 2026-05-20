@@ -106,6 +106,23 @@ struct PasteboardCommands: Commands {
 
 // MARK: - App Menu Commands
 
+/// Where `Cmd+F` resolves in the current context. The data-grid filter lives in
+/// the View menu and the editor's Find lives in the Edit menu. Only the item
+/// matching the current route binds `Cmd+F`; the other drops it. Two items
+/// sharing one key equivalent makes SwiftUI dedupe the shortcut and AppKit bind
+/// it to the disabled item, so the live owner must be unique.
+enum CommandFRoute {
+    case inspectorFilter
+    case tableFilter
+    case editorFind
+
+    static func resolve(isInspector: Bool, isTableTab: Bool) -> CommandFRoute {
+        if isInspector { return .inspectorFilter }
+        if isTableTab { return .tableFilter }
+        return .editorFind
+    }
+}
+
 /// All menu commands extracted into a separate Commands struct so that AppState
 /// changes only re-evaluate the menu items — NOT the Scene body / WindowGroups.
 struct AppMenuCommands: Commands {
@@ -150,6 +167,10 @@ struct AppMenuCommands: Commands {
 
     private var keyWindowIsInspector: Bool {
         NSApp.keyWindow?.windowController is InspectorWindowController
+    }
+
+    private var commandFRoute: CommandFRoute {
+        CommandFRoute.resolve(isInspector: keyWindowIsInspector, isTableTab: actions?.isTableTab == true)
     }
 
     var body: some Commands {
@@ -468,16 +489,17 @@ struct AppMenuCommands: Commands {
             Divider()
 
             Button(String(localized: "Find...")) {
-                if keyWindowIsInspector {
+                switch commandFRoute {
+                case .inspectorFilter:
                     NSApp.sendAction(#selector(InspectorViewController.toggleInspectorFilter(_:)), to: nil, from: nil)
-                } else if NSApp.keyWindow?.firstResponder is KeyHandlingTableView,
-                          actions?.isTableTab == true {
-                    actions?.toggleFilterPanel()
-                } else {
+                case .editorFind:
                     EditorEventRouter.shared.showFindPanelForKeyWindow()
+                case .tableFilter:
+                    break
                 }
             }
-            .keyboardShortcut("f", modifiers: .command)
+            .optionalKeyboardShortcut(commandFRoute == .tableFilter ? nil : KeyboardShortcut("f", modifiers: .command))
+            .disabled(commandFRoute == .tableFilter)
 
             Divider()
 
@@ -521,8 +543,8 @@ struct AppMenuCommands: Commands {
             Button("Toggle Filters") {
                 actions?.toggleFilterPanel()
             }
-            .optionalKeyboardShortcut(shortcut(for: .toggleFilters))
-            .disabled(!(actions?.isConnected ?? false) || !(actions?.isTableTab ?? false))
+            .optionalKeyboardShortcut(commandFRoute == .tableFilter ? shortcut(for: .toggleFilters) : nil)
+            .disabled(commandFRoute != .tableFilter || !(actions?.isConnected ?? false))
 
             Button("Toggle History") {
                 actions?.toggleHistoryPanel()
