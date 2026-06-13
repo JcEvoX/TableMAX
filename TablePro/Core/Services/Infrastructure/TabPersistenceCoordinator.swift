@@ -11,8 +11,8 @@ internal struct RestoreResult {
     let tabs: [QueryTab]
     let selectedTabId: UUID?
     let source: RestoreSource
-    var lastActiveDatabase: String? = nil
-    var lastActiveSchema: String? = nil
+    var lastActiveDatabase: String?
+    var lastActiveSchema: String?
 
     enum RestoreSource {
         case disk

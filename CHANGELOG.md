@@ -7,59 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.51.0] - 2026-06-13
+
 ### Added
 
-- BigQuery datasets can be switched from the toolbar, the Cmd+K switcher, and the File menu, including creating and dropping datasets. (#509)
-- Quick Switcher now searches saved queries alongside tables, views, databases, and history.
-- Quick Switcher scopes: an empty search shows your recent items with round scope buttons beside the search bar; Cmd+1 to Cmd+4 (or the buttons) browse all tables, databases, or queries.
-- Option+Return in the Quick Switcher opens the table in a new tab; right-click a result to open its structure, copy the name, or copy the query.
-- Tables already open in a tab show an Open badge in the Quick Switcher, rank higher, and Return switches to the existing tab.
-- `.psql` and `.pgsql` files now open in the SQL editor like `.sql`: Finder double-click, the open and save panels, and linked SQL folders all accept them. (#1641)
-- Session restore now brings back each tab's applied sort, current page, cursor position, and column widths, along with the connection's active database and schema. Tabs save in the background every 30 seconds and a crash still recovers your last session and reopens its connections. (#1673)
+- BigQuery datasets can be switched, created, and dropped from the toolbar, Cmd+K switcher, and File menu. (#509)
+- Quick Switcher now searches saved queries too, alongside tables, views, databases, and history.
+- Quick Switcher scopes: an empty search shows recent items, and Cmd+1 to Cmd+4 browse all tables, databases, or queries.
+- Quick Switcher: Option+Return opens a table in a new tab, and right-click opens its structure or copies the name or query.
+- Tables already open show an Open badge in the Quick Switcher, rank higher, and Return switches to the existing tab.
+- `.psql` and `.pgsql` files now open in the SQL editor like `.sql`. (#1641)
+- Session restore brings back each tab's sort, page, cursor position, and column widths, plus the connection's active database and schema. Tabs autosave every 30 seconds, so a crash recovers your last session and reopens its connections. (#1673)
 
 ### Changed
 
-- Redis connections now filter with a key-pattern search field and a key-type scope instead of the SQL-style filter row. Patterns use glob syntax like `user:*`, are matched server-side across the whole keyspace, and the type scope narrows results by value type. The old filter row only matched one batch of keys and ignored any filter on Type, TTL, or Value.
+- Redis connections now filter with a key-pattern search field and a key-type scope. Glob patterns like `user:*` match server-side across the whole keyspace, replacing the SQL-style filter row that only matched one batch of keys.
 - Switcher, menus, and alerts now use each database's own container name: Dataset for BigQuery, Keyspace for Cassandra and ScyllaDB. (#509)
-- Quick Switcher highlights the matched characters in each result, finds better alignments for camelCase and snake_case names, and ranks items you open often and recently higher.
-- Quick Switcher now opens as a Spotlight-style floating panel over the window instead of a modal sheet: large borderless search field, rounded row selection that turns accent-colored while navigating with the keyboard, and an action hint on the selected row. On macOS 26 the panel uses Liquid Glass.
-- The sidebar filter, database switcher, and connection switcher now use the same fuzzy matching as the Quick Switcher, so abbreviations like `upv` find `user_profile_view`.
-- Refresh (Cmd+R) now acts only on the focused window's connection, instead of also reloading views and clearing autocomplete caches for every other open connection.
-- Holding Cmd+R no longer queues a backlog of refreshes that kept running after the key was released; refresh fires once per key press, and rapid presses collapse into a single reload.
-- Switching PostgreSQL schemas now sets the search path to just the selected schema instead of also keeping "public" on it. Unqualified references to objects in "public", such as extension functions, need a "public." prefix while another schema is selected. (#1662)
-- The inspector panel can now be resized freely by dragging its divider instead of being capped at a fixed width.
-- TablePro now reopens your last session on launch by default instead of showing the welcome screen. Installs still on the previous default move over once; change it any time under Settings > General > Startup Behavior. (#1673)
+- Quick Switcher highlights matched characters, aligns camelCase and snake_case names better, and ranks items you open often and recently higher.
+- Quick Switcher now opens as a Spotlight-style floating panel instead of a modal sheet, with Liquid Glass on macOS 26.
+- The sidebar filter, database switcher, and connection switcher now use the same fuzzy matching as the Quick Switcher, so `upv` finds `user_profile_view`.
+- Refresh (Cmd+R) now acts only on the focused window's connection instead of reloading every open connection.
+- Holding Cmd+R no longer queues a backlog of refreshes; rapid presses collapse into a single reload.
+- Switching PostgreSQL schemas now sets the search path to just the selected schema. Unqualified references to "public" objects, such as extension functions, need a "public." prefix while another schema is selected. (#1662)
+- The inspector panel can now be resized freely by dragging its divider.
+- TablePro now reopens your last session on launch by default instead of the welcome screen. Existing installs move over once; change it under Settings > General > Startup Behavior. (#1673)
 
 ### Fixed
 
-- PostgreSQL and Redshift autocomplete now completes tables and columns from schemas other than the one selected in the sidebar, so a schema-qualified query like `SELECT * FROM s2.orders` suggests `s2`'s columns. (#1668)
-- Favorite keywords now work again: favorites scoped to a deleted connection were silently kept in storage but hidden everywhere, so typing their keyword did nothing. Deleting a connection now also deletes its saved queries, their folders, and per-table filters, the delete confirmation says so, and favorites already orphaned by an earlier delete are cleaned up at launch.
-- Keyword autocomplete and SQL keyword suggestions now work in editors without a database connection, and favorites appear in the completion popup immediately instead of after a short delay.
+- PostgreSQL and Redshift autocomplete now completes tables and columns from schemas other than the selected one, so `SELECT * FROM s2.orders` suggests `s2`'s columns. (#1668)
+- Favorite keywords work again. Deleting a connection now also deletes its saved queries, folders, and per-table filters, the confirmation says so, and favorites orphaned by an earlier delete are cleaned up at launch.
+- Keyword and SQL keyword autocomplete now work in editors without a connection, and favorites appear in the completion popup immediately.
 - Typing a favorite's keyword in the Quick Switcher now finds the saved query instead of ranking it below name matches.
-- PostgreSQL databases without a "public" schema now load tables from the first available schema, the schema selector also appears when only one schema exists, and the database list counts tables in every user schema instead of only "public". (#1662)
-- Switching schemas no longer closes your open tabs or discards unsaved SQL. Tabs stay open, and the sidebar, schema chip, and autocomplete update to the new schema. (#1669)
-- Creating a table now turns the Create Table tab into the new table's tab instead of leaving the creation tab open next to a duplicate, and the sidebar shows the new table without a manual refresh. (#1664)
+- PostgreSQL databases without a "public" schema now load tables from the first available schema, show the schema selector even with one schema, and count tables across every user schema. (#1662)
+- Switching schemas no longer closes open tabs or discards unsaved SQL; the sidebar, schema chip, and autocomplete update to the new schema. (#1669)
+- Creating a table now turns the Create Table tab into the new table's tab and shows it in the sidebar without a manual refresh. (#1664)
 - Cmd+S in the Create Table tab now creates the table, matching the Save shortcut everywhere else. (#1664)
-- Format Query can now be undone with Cmd+Z; the formatting is applied as a single editor edit instead of clearing the undo history. (#1645)
-- Format Query now formats only the selected text when a selection is active, and the full query when nothing is selected. (#1656)
-- Foreign key jump arrows no longer disappear after sorting, filtering, or paginating a table, and a failed foreign key lookup is retried on the next load instead of hiding the arrows for the whole session.
-- PostgreSQL foreign keys are now read from the system catalogs, so FK jump arrows appear even when the connected role does not own the referenced tables.
-- Sorting a query result no longer overwrites the SQL editor text or the contents of an opened `.sql` file; the sort runs as a separate query and the editor keeps what you wrote. (#1645)
-- iCloud Sync between the iPhone and Mac apps: the iOS app now uses the Production CloudKit environment, so a development build no longer syncs into a separate database the Mac never reads.
-- Exports no longer fail mid-table on servers that enforce a statement time limit; the export session disables the limit and restores it afterwards, the same way mysqldump does. (#1633)
-- Quick Switcher no longer shows an empty table list when opened before the schema has finished loading.
-- Loading a saved query or history entry from the no-tabs screen now opens it in the current window instead of creating a second window tab.
+- Format Query can now be undone with Cmd+Z. (#1645)
+- Format Query now formats only the selection when one is active, and the full query otherwise. (#1656)
+- Foreign key jump arrows no longer disappear after sorting, filtering, or paginating, and a failed lookup is retried on the next load.
+- PostgreSQL foreign keys are now read from the system catalogs, so FK jump arrows appear even when the role does not own the referenced tables.
+- Sorting a query result no longer overwrites the SQL editor or an opened `.sql` file; the sort runs as a separate query. (#1645)
+- iCloud Sync between the iPhone and Mac apps now uses the Production CloudKit environment, so development builds no longer sync into a separate database.
+- Exports no longer fail mid-table on servers with a statement time limit; the export session disables the limit and restores it afterwards. (#1633)
+- Quick Switcher no longer shows an empty table list when opened before the schema finishes loading.
+- Loading a saved query or history entry from the no-tabs screen now opens it in the current window instead of a second tab.
 - Opening a query from history in the Quick Switcher loads the full query instead of a 100-character preview.
-- Refreshing a table now reloads its data even when the previous load is still running; before, the refresh was silently dropped and the grid kept stale rows. (#1637)
-- Cmd+R on a table now reloads its rows instead of failing with a query error; the refresh was sending the database a stray cancel that aborted its own freshly-issued reload.
-- SQL autocomplete now suggests tables after JOIN. It detects the clause at the cursor across multi-join and multi-clause queries, so columns no longer appear where a table is expected, and tables lead the list. (#1646)
-- Large SQL scripts no longer freeze the editor or pin the CPU. Pasting is faster, and above 2 MB the editor suspends syntax highlighting and inline AI so typing, scrolling, and deleting stay responsive. (#1652)
+- Refreshing a table now reloads its data even when the previous load is still running. (#1637)
+- Cmd+R on a table now reloads its rows instead of failing with a query error.
+- SQL autocomplete now suggests tables after JOIN across multi-join and multi-clause queries, with tables leading the list. (#1646)
+- Large SQL scripts no longer freeze the editor or pin the CPU. Above 2 MB the editor suspends syntax highlighting and inline AI so typing and scrolling stay responsive. (#1652)
 
 ### Security
 
 - Imported connections from a deep link or shared file can no longer carry a pre-connect script that runs a shell command on connect.
 - External database links now ask for confirmation before connecting, and a password in the link is never saved to the Keychain.
-- MCP tools now enforce each connection's external access level, per-connection AI policy, and token connection scope on every request.
+- MCP tools now enforce each connection's external access level, AI policy, and token scope on every request.
 - The MCP server now requires a paired token by default, even over loopback.
 - An installed plugin's code signature is re-checked right before it loads, so the binary cannot be swapped after the first check.
 - MongoDB filter values in the Contains, Not Contains, Starts With, Ends With, and Regex operators can no longer inject query operators.
@@ -2266,7 +2268,8 @@ TablePro is a native macOS database client built with SwiftUI and AppKit, design
     - Custom SQL query templates
     - Performance optimized for large datasets
 
-[Unreleased]: https://github.com/TableProApp/TablePro/compare/v0.50.0...HEAD
+[Unreleased]: https://github.com/TableProApp/TablePro/compare/v0.51.0...HEAD
+[0.51.0]: https://github.com/TableProApp/TablePro/compare/v0.50.0...v0.51.0
 [0.50.0]: https://github.com/TableProApp/TablePro/compare/v0.49.1...v0.50.0
 [0.49.1]: https://github.com/TableProApp/TablePro/compare/v0.49.0...v0.49.1
 [0.49.0]: https://github.com/TableProApp/TablePro/compare/v0.48.0...v0.49.0
